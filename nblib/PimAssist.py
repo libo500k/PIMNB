@@ -20,3 +20,5 @@ class Config(object):
     def getValue (self,key):
 	return self.parser.get('DEFAULT',key)	
 
+
+
