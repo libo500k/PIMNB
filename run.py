@@ -6,13 +6,26 @@ import webob
 from OpenSSL import SSL
 import sys
 import signal,time,threading
+from nblib import *
 
 
+#import pdb
+#pdb.set_trace()
+c = PimAssist.Config()
+cert_path =  c.getValue('CERT')
+print "======================================"
+print cert_path
+print "======================================"
 
+paste_path = c.getValue('PASTE')
+ 
 ctx = SSL.Context(SSL.SSLv23_METHOD)
-fpem = '/root/PIMNB/PIMNB/cfg/server.pem'
+fpem =  cert_path
 ctx.use_privatekey_file (fpem)
 ctx.use_certificate_file(fpem)
+
+
+
 
 
 def CtrlC(signum, frame):
@@ -42,9 +55,9 @@ def filter_factory(global_config, **local_config):
 if __name__ == '__main__':
     try:
         signal.signal(signal.SIGINT,CtrlC)
-        wsgi_app = loadapp('config:/root/PIMNB/PIMNB/cfg/paste.ini')
+        wsgi_app = loadapp(paste_path)
         httpserver.serve(wsgi_app, host='127.0.0.1', port=8080, ssl_context=ctx)
     except Exception, exc:
-        '''print exc'''
+        print exc
         print '==============================='
 
