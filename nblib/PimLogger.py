@@ -44,4 +44,7 @@ def info(m):
 def error(m):
     PimLogger.getInstance().error(m)
 
+def exception(m):
+    PimLogger.getInstance().exception(m)
+
 

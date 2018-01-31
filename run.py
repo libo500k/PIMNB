@@ -9,14 +9,8 @@ import signal,time,threading
 from nblib import *
 
 
-#import pdb
-#pdb.set_trace()
 c = PimAssist.Config()
 cert_path =  c.getValue('CERT')
-print "======================================"
-print cert_path
-print "======================================"
-
 paste_path = c.getValue('PASTE')
  
 ctx = SSL.Context(SSL.SSLv23_METHOD)
