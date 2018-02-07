@@ -25,7 +25,7 @@ ctx.use_certificate_file(fpem)
 def CtrlC(signum, frame):
     print 'You choose to stop me.'
     sys.exit()
-
+"""
 @wsgify
 def application(req):
 #   webob.Request.remote_user ==
@@ -45,12 +45,16 @@ def app_factory(global_config, **local_config):
 
 def filter_factory(global_config, **local_config):
     return my_filter
+"""
 
 if __name__ == '__main__':
     try:
         signal.signal(signal.SIGINT,CtrlC)
-        wsgi_app = loadapp(paste_path)
-        httpserver.serve(wsgi_app, host='127.0.0.1', port=8080, ssl_context=ctx)
+        appname = "pimnb"
+        wsgi_app = loadapp(paste_path, appname) 
+        #wsgi_app = loadapp(paste_path)
+        httpserver.serve(wsgi_app, host='0.0.0.0', port=8080, ssl_context=ctx)
+        #httpserver.serve(wsgi_app, host='127.0.0.1', port=8080)
     except Exception, exc:
         print exc
         print '==============================='

@@ -1,0 +1,8 @@
+[pipeline:main]
+pipeline = myfilter myapp
+ 
+[app:myapp]
+paste.app_factory = run:app_factory
+ 
+[filter:myfilter]
+paste.filter_factory = run:filter_factory
