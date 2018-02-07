@@ -15,6 +15,7 @@ import pprint
 import json
 import MySQLdb
 import PimAssist
+import re
 
 from webob import Response
 from webob import Request
@@ -24,7 +25,18 @@ from paste.deploy import loadapp
 from OpenSSL import SSL
 import PimLogger as log
 
+class globalDict(object):
+    _auth = {} 
+    _lock = threading.Lock() 
 
+    @classmethod
+    def addBasic(cls,key,value):
+        if cls._lock.acquire():
+            cls._auth[key] = {}
+            cls._auth[key]["basic"] = value
+            cls._lock.release()
+
+    
 
 class PimJobs(object):
     '''
@@ -87,16 +99,35 @@ class PimJobs(object):
             content.append(" Error Request :INTERNAL SERVER ERROR ")
             return res 
         # update global dict wich lock
-        
+        globalDict.addBasic(req.remote_addr.strip(),self.body)
         # send success response
         res.status = 201
         res.headerlist = [('Content-type', 'application/json'),('Charset', 'UTF-8')]
         res.body = json.dumps({"VimId":self._getVimid()})
-        print "=====post====123==="
+        print ( "=====> Subscription from %s ,handled =======" % req.remote_addr)
         return res
 
     def _deleteSubs(self,req):
         res = Response()
+        import pdb
+        pdb.set_trace()
+        str = req.path_qs
+        regex = ".+pimJobs/(.+)\?subType=(.+)"
+        if re.search(regex, str):
+            match = re.search(regex, str)
+            print "Full match: %s" % (match.group(0))
+            # So this will print "June"
+            print "Month: %s" % (match.group(1))
+            # So this will print "24"
+            print "Day: %s" % (match.group(2))
+        else:
+            # wrong query string
+            log.error("incorrect delete subscription qs in header")
+            res.status = '400'
+            content = []
+            content.append(" Error Request(d) : INVALID REQUEST ")
+            return res
+            
         print "=====delete======="
         return res
 
@@ -141,7 +172,7 @@ class PimJobs(object):
         dbname = c.getValue('DB_NAME')
         dburi = c.getValue('DB_URI')
         db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
-        ip = req.remote_addr
+        ip = req.remote_addr.strip()
         nfvoid = self.body.get('NfvoId')
         hb = self.body.get('Heartbeat')
         pe = self.body.get('Period')
