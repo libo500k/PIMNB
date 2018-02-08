@@ -61,11 +61,7 @@ class PimJobs(object):
         else:
             # error handler 
             res = Response()
-            res.status = '400 INVALID REQUEST'
-            res.content_type = "text/plain"
-            content = []
-            content.append(" Error Request : without method ") 
-            res.body = '\n'.join(content)  
+            self._setErrorResponse(res,400,"INVALID REQUEST")
         return res(environ,start_response)
 
     def _createSubs(self,req):
@@ -79,24 +75,18 @@ class PimJobs(object):
         v = self._checkToken()
         if not v:
             #fail to check token
-            res.status = '401'
-            content = []
-            content.append(" Error Request : UNAUTHORIZED ")
+            self._setErrorResponse(res,401,"UNAUTHORIZED")  
             return res
         # retrive request body params
         self.body = json.loads(req.body) 
         v = self._checkIntegrity()
         if not v:
-            res.status = '400'
-            content = []
-            content.append(" Error Request : INVALID REQUEST ") 
+            self._setErrorResponse(res,400,"INVALID REQUEST")
             return res
         # save to database
         v = self._saveToDB(req)
         if not v:
-            res.status = '500'
-            content = []
-            content.append(" Error Request :INTERNAL SERVER ERROR ")
+            self._setErrorResponse(res,500,"INTERNAL SERVER ERROR")
             return res 
         # update global dict wich lock
         globalDict.addBasic(req.remote_addr.strip(),self.body)
@@ -172,15 +162,14 @@ class PimJobs(object):
         dbname = c.getValue('DB_NAME')
         dburi = c.getValue('DB_URI')
         db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
-        ip = req.remote_addr.strip()
         nfvoid = self.body.get('NfvoId')
         hb = self.body.get('Heartbeat')
         pe = self.body.get('Period')
         url = self.body.get('IdentityUri')
         user = self.body.get('Username')
         passwd = self.body.get('Password')   
-        sql = "INSERT INTO RegMano(ip,nfvoid,heartbeat,period,identityuri,user,passwd)\
-               VALUES ('%s','%s',%s,%s,'%s','%s','%s')" % (ip,nfvoid,hb,pe,url,user,passwd) 
+        sql = "INSERT INTO RegMano(nfvoid,heartbeat,period,identityuri,user,passwd)\
+               VALUES ('%s',%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,url,user,passwd) 
 	try:
             cursor = db.cursor()
             cursor.execute(sql)
@@ -192,6 +181,13 @@ class PimJobs(object):
         finally:
             db.close()
         return saved
+
+    def _setErrorResponse(self,res,s,m):
+        res.status = s
+        content = []
+        content.append(" Error Request : %s" %m)
+        res.body = '\n'.join(content)
+        return res 
 
     @classmethod
     def factory(cls,global_conf,**kwargs):
