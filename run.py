@@ -50,6 +50,7 @@ def filter_factory(global_config, **local_config):
 if __name__ == '__main__':
     try:
         signal.signal(signal.SIGINT,CtrlC)
+        PimOps.globalDict.loadDB() 
         appname = "pimnb"
         wsgi_app = loadapp(paste_path, appname) 
         #wsgi_app = loadapp(paste_path)

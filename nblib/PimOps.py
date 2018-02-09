@@ -31,6 +31,37 @@ class globalDict(object):
     _lock = threading.Lock() 
 
     @classmethod
+    def loadDB(cls):
+        loaded = True
+        db = connectDB()
+        import pdb
+        pdb.set_trace()
+        sql = "select * from RegMano" 
+        try:
+            cursor = db.cursor()
+            cursor.execute(sql)
+            # re-strct runtime data
+            results = cursor.fetchall()
+            # no need to protect global data with lock
+            # this func is called in the beginning of daemon
+            for row in results:
+               d = {}
+               d['NfvoId'] = row[0]
+               d['Heartbeat'] = row[1]
+               d['Period'] = row[2]
+               d['IdentityUri'] = row[3]
+               d['Username'] = row[4]
+               d['Password'] = row[5]
+               d['qType'] = "pim" 
+               cls._auth[row[0]]={}
+               cls._auth[row[0]]["basic"] = d
+        except:
+            loaded = False
+            log.exception('failed to load data from database')
+        finally:
+            db.close()  
+        return loaded
+    @classmethod
     def getCopy(cls):
         cls._lock.acquire()
         copied = copy.deepcopy(cls._auth)
@@ -266,4 +297,13 @@ class PimJobs(object):
     def factory(cls,global_conf,**kwargs):
         return PimJobs()
 
+
+def connectDB():
+    c = PimAssist.Config()
+    dbuser =  c.getValue('DB_USER')
+    dbpasswd = c.getValue('DB_PASSWD')
+    dbname = c.getValue('DB_NAME')
+    dburi = c.getValue('DB_URI')
+    db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
+    return db
 
