@@ -9,9 +9,13 @@ import signal,time,threading
 import json
 from nblib import *
 import datetime
+from pprint import pprint
+import pdb
 
 token = "gAAAAABZJ8_a7aiq1SnOhbNw8vFb5WZC"
 t = datetime.datetime.now().isoformat() 
+expired = datetime.datetime.now() + datetime.timedelta(seconds=5)
+e = expired.isoformat()
 ip = "127.0.0.1:1234"
 v = '''{
     "Token": "%s",
@@ -31,10 +35,35 @@ v = '''{
             "CallBackUri": "https://%s/pimFm"
         }
     ]
-}''' %(token,t,t,ip,ip,ip)
+}''' %(token,t,e,ip,ip,ip)
 
 @wsgify
 def application(req):
+    t = datetime.datetime.now().isoformat()
+    expired = datetime.datetime.now() + datetime.timedelta(seconds=5)
+    e = expired.isoformat()
+    ip = "127.0.0.1:1234"
+    v = '''{
+    "Token": "%s",
+    "IssuedAt": "%s",
+    "ExpiresAt": "%s",
+    "CallBackUris": [
+        {
+            "UriType": "pimCm",
+            "CallBackUri": "https://%s/pimCm"
+        },
+        {
+            "UriType": "pimPm",
+            "CallBackUri": "https://%s/pimPm"
+        },
+        {
+            "UriType": "pimFm",
+            "CallBackUri": "https://%s/pimFm"
+        }
+    ]
+    }''' %(token,t,e,ip,ip,ip)
+    pprint(req)
+    #pdb.set_trace()
     res = Response()
     res.status = 201
     res.headerlist = [('Content-type', 'application/json'),('Charset', 'UTF-8')]

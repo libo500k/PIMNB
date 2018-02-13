@@ -17,6 +17,12 @@ import MySQLdb
 import PimAssist
 import re
 import copy
+import pdb
+import httplib, urllib
+import socket
+import ssl
+import dateutil.parser
+import datetime
 
 from webob import Response
 from webob import Request
@@ -34,8 +40,6 @@ class globalDict(object):
     def loadDB(cls):
         loaded = True
         db = connectDB()
-        import pdb
-        pdb.set_trace()
         sql = "select * from RegMano" 
         try:
             cursor = db.cursor()
@@ -67,6 +71,12 @@ class globalDict(object):
         copied = copy.deepcopy(cls._auth)
         cls._lock.release()
         return copied
+    @classmethod
+    def merge(cls,d2):
+        cls._lock.acquire()
+        cls._auth.update(d2)        
+        print json.dumps(cls._auth, sort_keys=True, indent=2) 
+        cls._lock.release()
  
     @classmethod
     def addBasic(cls,key,value):
@@ -88,7 +98,6 @@ class PimJobs(object):
     Subscription Class     
     '''
     def __init__(self,a):
-        self.vimid = None
         return
 
     def __call__(self,environ,start_response):
@@ -138,7 +147,7 @@ class PimJobs(object):
         # send success response
         res.status = 201
         res.headerlist = [('Content-type', 'application/json'),('Charset', 'UTF-8')]
-        res.body = json.dumps({"VimId":self._getVimid()})
+        res.body = json.dumps({"VimId":getVimid()})
         print ( "=====> Subscription from %s ,handled =======" % req.remote_addr)
         return res
 
@@ -229,11 +238,6 @@ class PimJobs(object):
             return False
         return True
 
-    def _getVimid(self):
-        if not self.vimid:
-            self.vimid = "dummy vimid 123"
-        return self.vimid
-
     def _deleteFromDB(self,nfvoid):
         deleted = True
         c = PimAssist.Config()
@@ -307,3 +311,82 @@ def connectDB():
     db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
     return db
 
+def getVimid():
+    vimid = "dummy vimid 123"
+    return vimid
+
+
+def authForPushData(interval,timeout):
+    t = threading.currentThread()
+    #pdb.set_trace()
+    while getattr(t, "do_run", True):
+        changed = False
+        rundata = globalDict.getCopy() 
+        #print "===============authforpushdata================="
+        for key in rundata:
+            if rundata[key].has_key('advance'):
+               # print(key+':'+rundata[key]['basic']['IdentityUri']) 
+               # if expired, pull new data from mano again
+               #pdb.set_trace()
+               c = datetime.datetime.now().replace(tzinfo=None)
+               t_str = rundata[key]['advance']['ExpiresAt']
+               e = getDateTimeFromISO8601String(t_str).replace(tzinfo=None) 
+               if  c >= e :
+                   data = sendRequest(rundata[key]['basic'],timeout)
+                   if data != None :
+                       rundata[key]['advance'] = json.loads(data)
+                       changed = True
+            else:
+                #print(key+':'+rundata[key]['basic']['IdentityUri']) 
+                data = sendRequest(rundata[key]['basic'],timeout)
+                if data != None :
+                    rundata[key]['advance'] = json.loads(data) 
+                    changed = True
+        #print json.dumps(rundata, sort_keys=True, indent=2)
+        if changed == True :
+            globalDict.merge(rundata) 
+        time.sleep(interval)
+
+def sendRequest(info,to):
+    #prepare header and body
+    headers = {"Content-type":"application/json", "charset":"UTF-8",\
+               "X-Auth-Username":info['Username'],"X-Auth-Password":info['Password']}
+    body = '{"VimId": "%s"}' % getVimid()
+    #prepare hosturl
+    uri = info['IdentityUri']
+    regex = ".+//(.+)/pimTokens"
+    if re.search(regex, uri):
+        match = re.search(regex,uri)
+        hosturl = match.group(1) 
+    else:
+        log.error("AuthForPushData has wrong callback uri %s" %uri)
+        return None
+    c = httplib.HTTPSConnection(host=hosturl,\
+        timeout=to,context=ssl._create_unverified_context())  
+    try:
+        c.request("POST", "/pimTokens",body,headers)
+        res = c.getresponse()
+    except Exception, exc:
+        log.exception('failed to send request/get response from mano, authforpushdata')
+        print exc
+        return None
+    else:
+        # check response status (must be 201)
+        if ( res.status != 201 ):
+            log.error("AuthForPushData get wrong https response status: %s" %res.status)
+            return None
+        data = res.read()
+        return data 
+
+def getDateTimeFromISO8601String(s):
+    d = dateutil.parser.parse(s)
+    return d
+
+
+
+
+
+
+
+
+ 
