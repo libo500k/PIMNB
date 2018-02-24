@@ -22,12 +22,14 @@ def CtrlC(signum, frame):
 def say( y,x,index ):
     print  "!!!!!!!!!!!!!!!!!!!!!-----%s--" % index 
     id = os.getpid()
-    time.sleep(20)
+    time.sleep(2)
     t = datetime.datetime.now().isoformat()
     return (id,t,x) 
 
 def cb(x):
     global bb
+    # pdb.set_trace()
+    pprint(x)
     bb[x[0]] = x[1]
     pprint(bb)
     pprint(x[2])
@@ -47,8 +49,12 @@ if __name__ == '__main__':
             res = pool.apply_async(func=say,args = ( [2 , 3 , 4],d,index ),callback = cb) 
             index += 1
             try:
+                t = datetime.datetime.now().isoformat()
+                print t
                 res.get(timeout=1)
             except TimeoutError:
+                t = datetime.datetime.now().isoformat()
+                print t
                 print "New task (%s)sent to pool already, waiting for ending, timeout exception" %index
                 #print "...%s...." %pool._inqueue
                 sys.stdout.flush()

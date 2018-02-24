@@ -7,11 +7,13 @@ from OpenSSL import SSL
 import sys
 import signal,time,threading
 from nblib import *
+from multiprocessing import Pool
 
 
 c = PimAssist.Config()
 cert_path =  c.getValue('CERT')
 paste_path = c.getValue('PASTE')
+poolsize = c.getValue('POOL_SIZE')
  
 ctx = SSL.Context(SSL.SSLv23_METHOD)
 fpem =  cert_path
@@ -29,15 +31,24 @@ def CtrlC(signum, frame):
 if __name__ == '__main__':
     try:
         signal.signal(signal.SIGINT,CtrlC)
+        # initial working process pool 
+        pool = Pool(int(poolsize))
         PimOps.globalDict.loadDB() 
         # Start a thread timer for AuthForPushData, 1 second
         t1 = threading.Thread(target=PimOps.authForPushData,args=(1,1,))
         t1.start()
+        # Start a thread timer for CM heartbead, 1 second
+        t2 = threading.Thread(target=PimAgent.cmHeartbeat,args=(pool,1,1,))
+        t2.start() 
         appname = "pimnb"
         wsgi_app = loadapp(paste_path, appname) 
-        #wsgi_app = loadapp(paste_path)
+        # start the rest api service on 9141 port 
         httpserver.serve(wsgi_app, host='0.0.0.0', port=9141, ssl_context=ctx)
-        #httpserver.serve(wsgi_app, host='127.0.0.1', port=8080)
+        
+        # !!! Need to check the thread status like ( t1, t2 ...)
+        # if failed, MUST pull it up again       
+        # if t1.isAlive():
+
     except Exception, exc:
         print "================== ERROR OCCURED=============================="
         print exc
@@ -45,3 +56,5 @@ if __name__ == '__main__':
     finally:
         t1.do_run = False 
         t1.join()
+        t2.do_run = False
+        t2.join()

@@ -364,18 +364,17 @@ def authForPushData(interval,timeout):
             if rundata[key].has_key('advance'):
                # print(key+':'+rundata[key]['basic']['IdentityUri']) 
                # if expired, pull new data from mano again
-               #pdb.set_trace()
                c = datetime.datetime.now().replace(tzinfo=None)
                t_str = rundata[key]['advance']['ExpiresAt']
                e = getDateTimeFromISO8601String(t_str).replace(tzinfo=None) 
                if  c >= e :
-                   data = sendRequest(rundata[key]['basic'],timeout)
+                   data = sendRequestPD(rundata[key]['basic'],timeout)
                    if data != None :
                        rundata[key]['advance'] = json.loads(data)
                        changed = True
             else:
                 #print(key+':'+rundata[key]['basic']['IdentityUri']) 
-                data = sendRequest(rundata[key]['basic'],timeout)
+                data = sendRequestPD(rundata[key]['basic'],timeout)
                 if data != None :
                     rundata[key]['advance'] = json.loads(data) 
                     changed = True
@@ -384,7 +383,7 @@ def authForPushData(interval,timeout):
             globalDict.merge(rundata) 
         time.sleep(interval)
 
-def sendRequest(info,to):
+def sendRequestPD(info,to):
     #prepare header and body
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
                "X-Auth-Username":info['Username'],"X-Auth-Password":info['Password']}
