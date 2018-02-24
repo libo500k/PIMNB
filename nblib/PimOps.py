@@ -76,7 +76,13 @@ class globalDict(object):
     @classmethod
     def merge(cls,d2):
         cls._lock.acquire()
-        cls._auth.update(d2)        
+        #Dict update method CANN'T be used in this case
+        #There may have items has been deleted during housekeeping sporadically.
+        #cls._auth.update(d2)        
+        for (k,v) in d2.items():
+            if k in cls._auth:
+                cls._auth[k] = v
+          
         print json.dumps(cls._auth, sort_keys=True, indent=2) 
         cls._lock.release()
  
@@ -228,7 +234,7 @@ class PimJobs(object):
             return False
         else:
             # check token on VIM kestone
-            print "check token dummy : %s" % self.token
+            print "check token : %s" % self.token
             c = PimAssist.Config()
             ip =  c.getValue('KS_AUTH_IP')
             headers = {"X-Auth-Token":self.token}
