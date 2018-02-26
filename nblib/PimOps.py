@@ -355,7 +355,6 @@ def getVimid():
 
 def authForPushData(interval,timeout):
     t = threading.currentThread()
-    #pdb.set_trace()
     while getattr(t, "do_run", True):
         changed = False
         rundata = globalDict.getCopy() 
@@ -390,17 +389,18 @@ def sendRequestPD(info,to):
     body = '{"VimId": "%s"}' % getVimid()
     #prepare hosturl
     uri = info['IdentityUri']
-    regex = ".+//(.+)/pimTokens"
+    regex = ".+//(.+)/(.+)$"
     if re.search(regex, uri):
         match = re.search(regex,uri)
-        hosturl = match.group(1) 
+        hosturl = match.group(1)
+        restapi = '/'+match.group(2) 
     else:
         log.error("AuthForPushData has wrong callback uri %s" %uri)
         return None
     c = httplib.HTTPSConnection(host=hosturl,\
         timeout=to,context=ssl._create_unverified_context())  
     try:
-        c.request("POST", "/pimTokens",body,headers)
+        c.request("POST", restapi ,body, headers)
         res = c.getresponse()
     except Exception, exc:
         log.exception('failed to send request/get response from mano, authforpushdata')
