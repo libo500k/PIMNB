@@ -13,31 +13,8 @@ from pprint import pprint
 import pdb
 
 
-token = "gAAAAABak8h8GMoH2vtXcL7qHXdQjIQowxTyil1LSJE7Q0_EDVn-YwB5NCX3d5Ej3ZH5RsP0A0_WXp4UM8zrYTo6jua3Y61h4XQhg3_AEs1_Xnl_Y12sA13xfGOKwbf_7msoy-Dxq9ygFewWwYS-zEy0FRTp-CaHOg"
 
-t = datetime.datetime.now().isoformat() 
-expired = datetime.datetime.now() + datetime.timedelta(seconds=5)
-e = expired.isoformat()
-ip = "127.0.0.1:1234"
-v = '''{
-    "Token": "%s",
-    "IssuedAt": "%s",
-    "ExpiresAt": "%s",
-    "CallBackUris": [
-        {
-            "UriType": "pimCm",
-            "CallBackUri": "https://%s/pimCm"
-        },
-        {
-            "UriType": "pimPm",
-            "CallBackUri": "https://%s/pimPm"
-        },
-        {
-            "UriType": "pimFm",
-            "CallBackUri": "https://%s/pimFm"
-        }
-    ]
-}''' %(token,t,e,ip,ip,ip)
+token = "gAAAAABalPHrxsE6A0HdVJZ35svlscGwLkO1ua4uJXBukAHBpDlpc9kYfdLhMbd4DC1uWyDpXZdsAKYMm578iC7TPm99HSXpyyrgsVpBFAVzu4rcHa1ufHkRlEXhcJwcjJ24urD9_HUb2Hkr5hYrU55tyBuIUjuQkA"
 
 @wsgify
 def appl(req):

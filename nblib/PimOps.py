@@ -403,8 +403,8 @@ def sendRequestPD(info,to):
         c.request("POST", restapi ,body, headers)
         res = c.getresponse()
     except Exception, exc:
-        log.exception('failed to send request/get response from mano, authforpushdata')
-        print exc
+        log.exception('Authforpushdata Failed,Check connection with NFVO')
+        print ('Authforpushdata Failed,Check connection with NFVO')
         return None
     else:
         # check response status (must be 201)
