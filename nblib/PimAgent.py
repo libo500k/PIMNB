@@ -92,7 +92,7 @@ def sendRequestCMHB(node,timeout):
                 return None
     c = httplib.HTTPSConnection(host=hosturl,timeout=timeout,context=sslctx) 
     try:
-        c.request("POST", restapi, body, headers)
+        c.request("PUT", restapi, body, headers)
         res = c.getresponse()
     except Exception, exc:
         log.exception('CM Heartbeat Error With Failed Connection')
