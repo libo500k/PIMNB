@@ -18,6 +18,8 @@ import httplib, urllib
 import ssl
 from multiprocessing import Pool, TimeoutError
 import PimLogger as log
+from webob import Response
+from webob import Request
 
 
 def cmHeartbeat(pool,interval,timeout):

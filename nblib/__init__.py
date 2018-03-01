@@ -1,1 +1,1 @@
-__all__ = ['PimOps', 'PimAgent','PimAssist']
+__all__ = ['PimOps', 'PimAgent','PimAssist','PimPool','PimList']

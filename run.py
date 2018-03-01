@@ -7,22 +7,20 @@ from OpenSSL import SSL
 import sys
 import signal,time,threading
 from nblib import *
-from multiprocessing import Pool
+from nblib import PimPool as pool
 
+
+pool.touch()
 
 c = PimAssist.Config()
 cert_path =  c.getValue('CERT')
 paste_path = c.getValue('PASTE')
-poolsize = c.getValue('POOL_SIZE')
  
 ctx = SSL.Context(SSL.SSLv23_METHOD)
 fpem =  cert_path
 ctx.use_privatekey_file (fpem)
 ctx.use_certificate_file(fpem)
 
-original_sigint_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-pool = Pool(int(poolsize))
-signal.signal(signal.SIGINT, original_sigint_handler)
 
 def CtrlC(signum, frame):
     print 'You choose to stop me.'
