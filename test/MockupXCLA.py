@@ -46,6 +46,11 @@ def CM(req):
     '''
     print ("Received Register callback  with below info:....")  
     pprint(req)
+    pprint(req.method)
+    pprint(req.query_string)
+    pprint(req.script_name)
+    pprint(req.headers.items())
+    pprint(req.body)
     #pdb.set_trace()
     res = Response()
     res.status = 201

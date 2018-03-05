@@ -34,6 +34,7 @@ from paste.deploy import loadapp
 from OpenSSL import SSL
 import PimLogger as log
 import PimPool as pool
+import PimOps
 from multiprocessing import TimeoutError
 
 class ListResDetails(object):
@@ -58,25 +59,46 @@ def ListRes(req):
     return RelayRequest(req,pimIP)
 
 def RelayRequest(req,pimIP):
-    print pimIP
-    print "-------------------------------------------------"
     res = Response()
+    # check keystone token first
+    v = PimOps.checkToken(req.environ['HTTP_X_AUTH_TOKEN'])
+    if not v :
+        #fail to check token, return directly
+        res.status = 401
+        content = []
+        content.append("Relay Request Error:UNAUTHORIZED")
+        res.body = '\n'.join(content) 
+        return res
+    # relay the NFVO request to PIM backend which identified by pimIP
+    c = httplib.HTTPConnection(host=pimIP,timeout=1)
+    headers = {"Content-type":"application/json", "charset":"UTF-8",\
+               "X-Auth-Token": req.environ['HTTP_X_AUTH_TOKEN']}
+    try:
+        c.request(req.method, req.script_name+"?"+req.query_string, None, headers)
+        pimres = c.getresponse()
+        res.status = pimres.status
+        res.body = pimres.read()
+        #PIM connection is OK, but API failed
+        checkPimResStatus(pimres)
+    except Exception, exc:
+        log.error("Check network connection between PIM and PIM plugin!!!")
+        log.exception('Req header is %s,Req script_name is %s,Req query_string is %s'\
+                   %(req.headers.items(),req.script_name,req.query_string))
+        print ('Req header is %s,Req script_name is %s,Req query_string is %s'\
+                   %(req.headers.items(),req.script_name,req.query_string))
+        res.status = 500
+        content = []
+        content.append("Relay Request Error: failed to get response from PIM")
+        res.body = '\n'.join(content)
     return res
 
-def checkResStatus(res1, res2):
+def checkPimResStatus(res):
     # check PIM response status, write log if error
-    if ( 200<= res1 <300):
-        print ("List Resource Success,Return Code(%s)"%res1)
-        log.debug("List Resource Success,Return Code(%s)"%res1)
+    if ( 200<= res.status <300):
+        print ("List Resource Success,Return Code(%s)"%res.status)
+        log.debug("List Resource Success,Return Code(%s)"%res.status)
     else:
-        print ("List resource PIM-SIDE Failed, PIM return Wrong Code(%s)" %res1)
-        log.error("List resource PIM-SIDE Failed, PIM return Wrong Code(%s)" %res1)
-    # check NFVO response status, write log if error
-    if ( 200<= res2 <300):
-        print ("List Resource Success,Return Code(%s)"%res2)
-        log.debug("List Resource Success,Return Code(%s)"%res2)
-    else:
-        print ("List resource NFVO-SIDE Failed, NFVO return Wrong Code(%s)" %res2)
-        log.error("List resource NFVO-SIDE Failed, NFVO return Wrong Code(%s)" %res2)
+        print ("List resource PIM-SIDE Failed, PIM return Wrong Code(%s)" %res.status)
+        log.error("List resource PIM-SIDE Failed, PIM return Wrong Code(%s)" %res.status)
 
 

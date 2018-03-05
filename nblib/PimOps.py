@@ -134,7 +134,7 @@ class PimJobs(object):
             if i[0] == "X-Auth-Token":
                 self.token = i[1]
                 break
-        v = self._checkToken()
+        v = checkToken(self.token)
         if not v:
             #fail to check token
             self._setErrorResponse(res,401,"UNAUTHORIZED")  
@@ -162,7 +162,7 @@ class PimJobs(object):
     def _deleteSubs(self,req):
         res = Response()
         # check token
-        v = self._checkToken()
+        v = checkToken(self.token)
         if not v:
             #fail to check token
             self._setErrorResponse(res,401,"UNAUTHORIZED")
@@ -200,7 +200,7 @@ class PimJobs(object):
             if i[0] == "X-Auth-Token":
                 self.token = i[1]
                 break
-        v = self._checkToken()
+        v = checkToken(self.token)
         if not v:
             #fail to check token
             self._setErrorResponse(res,401,"UNAUTHORIZED")
@@ -228,31 +228,6 @@ class PimJobs(object):
             return res
         print ( "=====> List Subscription from %s ,handled =======" % req.remote_addr) 
         return res
-
-    def _checkToken(self):
-        if not self.token:
-            return False
-        else:
-            # check token on VIM kestone
-            print "check token : %s" % self.token
-            c = PimAssist.Config()
-            ip =  c.getValue('KS_AUTH_IP')
-            headers = {"X-Auth-Token":self.token}
-            conn = httplib.HTTPConnection(host=ip, timeout=3) 
-            try:
-                conn.request("GET", "/v2.0/tenants",None,headers)
-                res = conn.getresponse()
-            except Exception, exc:
-                log.exception('failed to verify the token')
-                print exc
-                return False
-            else:
-                # check response status (must be 2XX)
-                if ( 200<= res.status <299 ):
-                    return True
-                else:
-                    log.error("Keystone Error Response status: %s" %res.status)
-                    return False 
 
     def _checkIntegrity(self):
 	if not self.body.has_key('NfvoId'):
@@ -418,4 +393,27 @@ def getDateTimeFromISO8601String(s):
     d = dateutil.parser.parse(s)
     return d
 
- 
+def checkToken(token):
+    if not token:
+        return False
+    else:
+        # check token on VIM kestone
+        print "check token : %s" %token
+        c = PimAssist.Config()
+        ip =  c.getValue('KS_AUTH_IP')
+        headers = {"X-Auth-Token":token}
+        conn = httplib.HTTPConnection(host=ip, timeout=3)
+        try:
+            conn.request("GET", "/v2.0/tenants",None,headers)
+            res = conn.getresponse()
+        except Exception, exc:
+            log.exception('failed to verify the token')
+            print exc
+            return False
+        else:
+            # check response status (must be 2XX)
+            if ( 200<= res.status <299 ):
+                return True
+            else:
+                log.error("Keystone Error Response status: %s" %res.status)
+                return False 
