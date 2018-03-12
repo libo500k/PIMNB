@@ -22,9 +22,22 @@ from webob import Response
 from webob import Request
 
 
-def cmHeartbeat(pool,interval,timeout):
+"""
+    Global heartbeat type dict
+"""
+HB_Dict = {
+    "CMHB":"pimCmHeartbeat",
+    "FMHB":"pimFmHeartbeat"
+}
+
+
+"""
+    entry function of config management heartbeat (CMHB) and fault management heartbeat (FMHB) thread
+"""
+def cmfmHeartbeat(pool, interval, timeout):
+
     t = threading.currentThread()
-    #pdb.set_trace()
+
     while getattr(t, "do_run", True):
         changed = False
         rundata = PimOps.globalDict.getCopy()
@@ -42,16 +55,25 @@ def cmHeartbeat(pool,interval,timeout):
                 #LoadDB and NFVO down will cause there is no "advance" key
                 if (c >= stamp+delta) and ('advance' in rundata[key]) :
                     rundata[key]['cmstamp'] = str(c)
-                    # do heartbeat
-                    doCMHB(pool,rundata[key],timeout)
+                    # do config management heartbeat
+                    doHB(pool, rundata[key], timeout, "CMHB")
+                    # do fault management heartbeat
+                    doHB(pool, rundata[key], timeout, "FMHB")
                     changed = True
 
-        if changed == True :
+        if changed == True:
             PimOps.globalDict.merge(rundata)
         time.sleep(interval)
 
-def doCMHB(pool, node, timeout):
-    res = pool.apply_async(func=sendRequestCMHB,args = (node,timeout),callback = cbCMHB) 
+
+"""
+    heartbeat processing function based on its type
+"""
+def doHB(pool, node, timeout, hb_type):
+
+    hb_callback_function_wrapper = lambda res: hb_callback_function(res, hb_type)
+    res = pool.apply_async(func=sendHeartBeat, args = (node, timeout, hb_type), callback = hb_callback_function_wrapper)
+
     try:
         res.get(timeout=1)
     except TimeoutError:
@@ -60,25 +82,40 @@ def doCMHB(pool, node, timeout):
         print "timeout"
         log.info("TimeoutError,Ignore Safely,Better to check Network Connection With NFVO")
 
-def cbCMHB(res):
-    if res == None :
-        log.error("CM Heartbeat Failed, check network connection wiht MANO/NFVO")
-    elif ( 200<= res <300):
-        print ("CM heartbeat Success,Return Code(%s)"%res)
-        log.debug("CM heartbeat Success,Return Code(%s)"%res)
-    else:
-        log.error("CM Heartbeat Failed, MANO/NFVO return Wrong Code(%s)" %res)
 
-def sendRequestCMHB(node,timeout):
+"""
+    callback function of apply_async based on heartbeat type
+"""
+def hb_callback_function(res, hb_type):
+    if res == None :
+        log.error("%s Failed, check network connection wiht MANO/NFVO" % hb_type)
+    elif ( 200<= res <300):
+        print ("%s Success,Return Code(%s)" %(hb_type, res))
+        log.debug("%s Success,Return Code(%s)" %(hb_type, res))
+    else:
+        log.error("%s Failed, MANO/NFVO return Wrong Code(%s)" % (hb_type, res))
+
+
+"""
+    send heart beat based on its type
+"""
+def sendHeartBeat(node, timeout, hb_type):
     # id = os.getpid()
     # print (id)
     vimid = PimOps.getVimid()
     # print(node)
-    body = '{"Version":"1.0","SrcType":"pim","MsgType":"pimCmHeartbeat","VimId":"%s"}' % vimid
+
+    if hb_type in HB_Dict:
+        body = '{"Version":"1.0", "VimId":"%s", "SrcType":"vpim", "MsgType":"%s",}' % (vimid, HB_Dict[hb_type])
+    else:
+        print("Wrong heartbeat type")
+        log.error("Wrong heartbeat type")
+        return None
+
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
                "X-Auth-Token": node['advance']['Token']}
     sslctx = ssl._create_unverified_context()
-    # fetch the cm heartbeat ip:port or ip only.
+    # fetch the heartbeat ip:port or ip only.
     for i in node['advance']['CallBackUris']:
         # !!! Pressed for time, hard-coding PIMCM,re-struct later
         if i['UriType'].upper() == "PIMCM":
@@ -89,15 +126,16 @@ def sendRequestCMHB(node,timeout):
                 restapi = '/'+match.group(2)
                 break
             else:
-                print("CM HeartBeat Error Occured with wrong URI format %s" %i['CallBackUri'])
-                log.error("CM HeartBeat Error Occured with wrong URI format %s" %i['CallBackUri']) 
+                print("%s Error Occured with wrong URI format %s" % (HB_Dict[hb_type],  i['CallBackUri']))
+                log.error("%s Error Occured with wrong URI format %s" %(HB_Dict[hb_type], i['CallBackUri'])) 
                 return None
+
     c = httplib.HTTPSConnection(host=hosturl,timeout=timeout,context=sslctx) 
     try:
         c.request("PUT", restapi, body, headers)
         res = c.getresponse()
     except Exception, exc:
-        log.exception('CM Heartbeat Error With Failed Connection')
+        log.exception('%s Error With Failed Connection' % HB_Dict[hb_type])
         print exc
         return None
     # Be careful not to return res, it will cause "MaybeEncodingError" exception
