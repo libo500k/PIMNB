@@ -38,8 +38,8 @@ if __name__ == '__main__':
         # Start a thread timer for AuthForPushData, 1 second
         t1 = threading.Thread(target=PimOps.authForPushData,args=(1,1,))
         t1.start()
-        # Start a thread timer for CM heartbead, 1 second
-        t2 = threading.Thread(target=PimAgent.cmHeartbeat,args=(pool,1,2,))
+        # Start a thread timer for CM and FM heartbead, 1 second
+        t2 = threading.Thread(target=PimAgent.cmfmHeartbeat,args=(pool,1,2,))
         t2.start() 
         appname = "pimnb"
         wsgi_app = loadapp(paste_path, appname) 
