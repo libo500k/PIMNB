@@ -39,7 +39,7 @@ from multiprocessing import TimeoutError
 
 class ListResDetails(object):
     '''
-    List resource class, proxy to PIM backend with process pool     
+    List resource(pimCm), alarm(pimFm), metrics(pimPm) class, proxy to PIM backend with process pool     
     ''' 
     def __init__(self,a):
         return
