@@ -14,6 +14,7 @@ import signal,time,threading
 import pprint
 import json
 import MySQLdb
+import psycopg2
 import PimAssist
 import re
 import copy
@@ -42,7 +43,7 @@ class globalDict(object):
     def loadDB(cls):
         loaded = True
         db = connectDB()
-        sql = "select * from RegMano" 
+        sql = "select * from regmano" 
         try:
             cursor = db.cursor()
             cursor.execute(sql)
@@ -248,13 +249,8 @@ class PimJobs(object):
 
     def _deleteFromDB(self,nfvoid):
         deleted = True
-        c = PimAssist.Config()
-        dbuser =  c.getValue('DB_USER')
-        dbpasswd = c.getValue('DB_PASSWD')
-        dbname = c.getValue('DB_NAME')
-        dburi = c.getValue('DB_URI')
-        db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname)    
-        sql = "delete from RegMano where nfvoid= '%s';" %(nfvoid)
+        db = connectDB()    
+        sql = "delete from regmano where nfvoid= '%s';" %(nfvoid)
         try:
             cursor = db.cursor()
             n = cursor.execute(sql)
@@ -264,27 +260,20 @@ class PimJobs(object):
             db.rollback()
             log.exception('failed to delete subscription data from database')
         finally:
-            if n != 1:
-                deleted = False
             db.close()
         return deleted 
 
         
     def _saveToDB(self,req):
         saved = True
-        c = PimAssist.Config()
-        dbuser =  c.getValue('DB_USER')
-        dbpasswd = c.getValue('DB_PASSWD')
-        dbname = c.getValue('DB_NAME')
-        dburi = c.getValue('DB_URI')
-        db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
+        db = connectDB() 
         nfvoid = self.body.get('NfvoId')
         hb = self.body.get('Heartbeat')
         pe = self.body.get('Period')
         url = self.body.get('IdentityUri')
         user = self.body.get('Username')
         passwd = self.body.get('Password')   
-        sql = "INSERT INTO RegMano(nfvoid,heartbeat,period,identityuri,user,passwd)\
+        sql = "INSERT INTO regmano(nfvoid,heartbeat,period,identityuri,luser,lpasswd)\
                VALUES ('%s',%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,url,user,passwd) 
 	try:
             cursor = db.cursor()
@@ -316,7 +305,11 @@ def connectDB():
     dbpasswd = c.getValue('DB_PASSWD')
     dbname = c.getValue('DB_NAME')
     dburi = c.getValue('DB_URI')
-    db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname) 
+    dbtype = c.getValue('DB_TYPE')
+    if dbtype=='POSTGRE':
+        db = psycopg2.connect(database=dbname, user=dbuser, password=dbpasswd, host=dburi)
+    else:
+        db = MySQLdb.connect(dburi,dbuser,dbpasswd,dbname)
     return db
 
 def getVimid():
