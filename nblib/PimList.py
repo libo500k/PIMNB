@@ -71,7 +71,22 @@ class ListChassisList(object):
             res = ListRes(req)
             return res(environ,start_response)
 
+class ListSystemList(object):
+    '''
+    List Chassis List(pimCm/Chassis)     
+    '''
+    def __init__(self,a):
+        return
 
+    def __call__(self,environ,start_response):
+        req = Request(environ)
+        m = req.method
+        if m == 'GET':
+            # list resource handler for GET method
+            # Response will be handled in process pool, 
+            # no need to check return value 
+            res = ListRes(req)
+            return res(environ,start_response)
 
 def ListRes(req):
     pimIP = PimAssist.Config().getValue('PIM_IP')
@@ -103,7 +118,6 @@ def RelayRequest(req,pimIP):
             p = req.script_name + req.path_info + "?" + req.query_string
         else:
             p = req.script_name + "?" + req.query_string
-        pdb.set_trace()
         c.request(req.method, p , None, headers)
         pimres = c.getresponse()
         res.status = pimres.status
