@@ -24,7 +24,7 @@ import ssl
 import dateutil.parser
 import datetime
 import uuid
-
+import base64 
 
 from webob import Response
 from webob import Request
@@ -60,6 +60,10 @@ def ListRes(req):
 
 def RelayRequest(req,pimIP):
     res = Response()
+    #get PIM user and password, base64 coding
+    pimuser = PimAssist.Config().getValue('PIM_USER')
+    pimpass = PimAssist.Config().getValue('PIM_PASS')
+    auth = base64.b64encode(pimuser+ ':'+ pimpass)
     # check keystone token first
     v = PimOps.checkToken(req.environ['HTTP_X_AUTH_TOKEN'])
     if not v :
@@ -70,9 +74,11 @@ def RelayRequest(req,pimIP):
         res.body = '\n'.join(content) 
         return res
     # relay the NFVO request to PIM backend which identified by pimIP
-    c = httplib.HTTPConnection(host=pimIP,timeout=1)
+    c = httplib.HTTPSConnection(host=pimIP,\
+        timeout=1,context=ssl._create_unverified_context())
+
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
-               "X-Auth-Token": req.environ['HTTP_X_AUTH_TOKEN']}
+               "Authorization": "Basic "+ auth}
     try:
         c.request(req.method, req.script_name+"?"+req.query_string, None, headers)
         pimres = c.getresponse()
