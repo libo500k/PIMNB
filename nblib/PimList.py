@@ -99,7 +99,12 @@ def RelayRequest(req,pimIP):
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
                "Authorization": "Basic "+ auth}
     try:
-        c.request(req.method, req.script_name+"?"+req.query_string, None, headers)
+        if req.path_info:
+            p = req.script_name + req.path_info + "?" + req.query_string
+        else:
+            p = req.script_name + "?" + req.query_string
+        pdb.set_trace()
+        c.request(req.method, p , None, headers)
         pimres = c.getresponse()
         res.status = pimres.status
         res.body = pimres.read()
