@@ -39,7 +39,7 @@ from multiprocessing import TimeoutError
 
 class ListResDetails(object):
     '''
-    List resource(pimCm), alarm(pimFm), metrics(pimPm) class, proxy to PIM backend with process pool     
+    List resource(pimCm)     
     ''' 
     def __init__(self,a):
         return
@@ -53,6 +53,25 @@ class ListResDetails(object):
             # no need to check return value 
             res = ListRes(req)
             return res(environ,start_response) 
+
+class ListChassisList(object):
+    '''
+    List Chassis List(pimCm/Chassis)     
+    '''
+    def __init__(self,a):
+        return
+
+    def __call__(self,environ,start_response):
+        req = Request(environ)
+        m = req.method
+        if m == 'GET':
+            # list resource handler for GET method
+            # Response will be handled in process pool, 
+            # no need to check return value 
+            res = ListRes(req)
+            return res(environ,start_response)
+
+
 
 def ListRes(req):
     pimIP = PimAssist.Config().getValue('PIM_IP')
