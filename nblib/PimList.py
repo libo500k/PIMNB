@@ -37,6 +37,100 @@ import PimPool as pool
 import PimOps
 from multiprocessing import TimeoutError
 
+
+"""
+    ISP list
+"""
+ISPList=[
+"alarmTitle",
+"alarmStatus",
+"alarmType",
+"origSeverity",
+"eventTime",
+"alarmId",
+"msgSeq",
+"specificProblemID",
+"specificProblem",
+"neUID",
+"neName",
+"neType",
+"objectUID",
+"objectName",
+"objectType",
+"locationInfo",
+"addInfo",
+"PVFlag"
+]
+
+
+"""
+    ISP-->LXCA mapping dict
+"""
+ISP2LXCA_DICT={
+"alarmTitle":"msg",
+#"alarmStatus":"",
+"alarmType":"severityText",
+#"origSeverity":"",
+"eventTime":"eventDate",
+"alarmId":"alertID",
+"msgSeq":"msgID",
+"specificProblemID":"eventID",
+"specificProblem":"eventSourceText",
+"neUID":"componentID",
+"neName":"systemText",
+"neType":'typeText',
+"objectUID":"sourceID",
+#"objectName":"",
+#"objectType":"",
+"locationInfo":"location",
+#"addInfo":"",
+#"PVFlag":"",
+}
+
+
+"""
+LXCA alert array item, please refer to RESP API of LXCA 2.0
+"""
+LXCAAlertItem = {
+    'alertID',
+    'args',
+    'bayText',
+    'chassisText',
+    'componentID',
+    'componentIdentifierText',
+    'eventClass',
+    'eventDate',
+    'eventID',
+    'eventSourceText',
+    'failFRUNames',
+    'failFRUPartNumbers',
+    'failFRUUUIDs',
+    'failFRUs',
+    'failSNs',
+    'fruSerialNumberText',
+    'groupName',
+    'groupUUID',
+    'isManagement',
+    'location',
+    'msg',
+    'msgID',
+    'raisedDate',
+    'relatedAlerts',
+    'service',
+    'serviceabilityText',
+    'severity',
+    'severityText',
+    'sourceID',
+    'systemFruNumberText',
+    'systemName',
+    'systemSerialNumberText',
+    'systemText',
+    'systemTypeModelText',
+    'systemTypeText',
+    'typeText'
+}
+
+
 class ListResDetails(object):
     '''
     List resource(pimCm)     
@@ -159,6 +253,61 @@ def doListActiveAlarm(req):
 
 
 """
+    Data mapping from LXCA_Resp -> ISP_Rep
+"""
+def LXCA2ISP_DataMapping(LXCA_resp, targetList, mapDict):
+
+    # convert LXCA_resp string to json
+    #obj_dump = json.dumps(LXCA_resp)
+    obj_json = json.loads(LXCA_resp)
+
+    vimid = PimOps.getVimid()
+
+    # ISPList
+    targetList = ISPList
+    # mapping dict
+    mapDict= ISP2LXCA_DICT
+
+    keyHit = True
+    alarmList=[]
+
+    # FIXME: only support less than 500 now
+    for i in obj_json:
+        alarmList.append("{")
+
+        for k in targetList:
+
+            if k in mapDict.keys():
+                mapping = mapDict[k]
+                keyHit = True
+            else:
+                mapping = ""
+                keyHit = False
+
+            v =""
+            if keyHit:
+                if mapping in i:
+                    v = i[mapping]
+                else:
+                    print "LXCA msg contains not enough msg"
+
+            if k is not targetList[-1]:
+                alarmItem = '"%s": "%s",' % (k,v)
+            else:
+                alarmItem = '"%s": "%s"' % (k,v)
+
+            alarmList.append(alarmItem)
+            #print alarmItem
+
+        alarmList.append( "}")
+
+    alarmBody = "".join(alarmList)
+    body = '{"Version":"1.0", "VimId":"%s", "SrcType":"pim", "MsgType":"pimFmAlarm", "AlarmList":"[%s]", "CurrentBatch": 1, "TotalBatches": 1}' % (vimid, alarmBody)
+
+    return body
+
+
+"""
     Relay ListActiveAlarm request to LXCA
 """
 def RelayListActiveAlarm(req, pimIP):
@@ -185,7 +334,9 @@ def RelayListActiveAlarm(req, pimIP):
 
 
         res.status = pimres.status
-        res.body = pimres.read()
+        body = pimres.read()
+        # pdb.set_trace()
+        res.text = LXCA2ISP_DataMapping(body, ISPList, ISP2LXCA_DICT)
 
         # PIM connection is OK, but API failed
         checkPimResStatus(pimres)
