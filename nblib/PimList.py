@@ -84,7 +84,7 @@ ISP2LXCA_DICT={
 #"objectType":"",
 "locationInfo":"location",
 #"addInfo":"",
-#"PVFlag":"",
+"PVFlag":"pim",
 }
 
 
@@ -289,8 +289,10 @@ def LXCA2ISP_DataMapping(LXCA_resp, targetList, mapDict):
                 if mapping in i:
                     v = i[mapping]
                 else:
-                    print "LXCA msg contains not enough msg"
-
+                    # default value, e.g. PVFlag 
+                    v = mapDict[k]
+            
+            # check if the last one in list
             if k is not targetList[-1]:
                 alarmItem = '"%s": "%s",' % (k,v)
             else:
