@@ -14,7 +14,7 @@ class Config(object):
 
     def __init__(self):
         self.parser = SafeConfigParser()
-        self.parser.read('/root/PIMNB/PIMNB/cfg/cfg.ini')
+        self.parser.read('./cfg/cfg.ini')
 	return
 
     def getValue (self,key):
