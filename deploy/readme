@@ -1,0 +1,15 @@
+
+1. Prerequisites
+- install the rpmbuild tool successful
+- install the python virtualenv package successful
+- refer to build.sh for detail installation steps
+
+2. How to make a rpm package for PIMNB daemon.
+- git clone source code from depot.
+- run "build.sh" script under deploy folder
+
+3. Limitation & known issues
+- need manual set up cfg.ini file under cfg folder
+- no systemctl service support in phase 1 release.
+
+
