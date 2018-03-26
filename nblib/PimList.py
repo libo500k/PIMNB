@@ -165,7 +165,22 @@ class ListChassisList(object):
             res = ListRes(req)
             return res(environ,start_response)
 
+class ListSystemList(object):
+    '''
+    List System List(pimCm/Chassis)     
+    '''
+    def __init__(self,a):
+        return
 
+    def __call__(self,environ,start_response):
+        req = Request(environ)
+        m = req.method
+        if m == 'GET':
+            # list resource handler for GET method
+            # Response will be handled in process pool, 
+            # no need to check return value 
+            res = ListRes(req)
+            return res(environ,start_response)
 
 def ListRes(req):
     pimIP = PimAssist.Config().getValue('PIM_IP')

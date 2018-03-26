@@ -12,3 +12,10 @@ luser varchar(16) not null,
 lpasswd varchar(16) not null
 );
 
+create table persistence
+(
+failip varchar(36) not null,
+failbody BYTEA,
+failmethod varchar(6) not null,
+failuri varchar(255) not null
+);
