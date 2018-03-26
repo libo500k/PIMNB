@@ -8,7 +8,7 @@ import sys
 import signal,time,threading
 from nblib import *
 from nblib import PimPool as pool
-
+from nblib import PimLogger as log
 
 pool.touch()
 
@@ -33,6 +33,18 @@ def CtrlC(signum, frame):
 if __name__ == '__main__':
     try:
         signal.signal(signal.SIGINT,CtrlC)
+
+        # register event monitor to LXCA, e.g. PushAlarm, PushResourceChg
+        # current only PushAlarm is supported
+        monitor_ip = PimAssist.Config().getValue('PUSH_IP')
+        monitor_port = PimAssist.Config().getValue('PUSH_PORT')
+        restPath = '/v1/pimFm/alarmMonitor'
+
+        if not PimRegister.registerMonitor(monitor_ip, monitor_port, restPath):
+            print "FATAL ERROR: failed to register Monitor in LXCA."
+            log.error("FATAL ERROR: failed to register Monitor in LXCA.")
+            sys.exit(1)
+
         # initial working process pool 
         PimOps.globalDict.loadDB() 
         # Start a thread timer for AuthForPushData, 1 second
