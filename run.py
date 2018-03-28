@@ -40,10 +40,10 @@ if __name__ == '__main__':
         monitor_port = PimAssist.Config().getValue('PUSH_PORT')
         restPath = '/v1/pimFm/alarmMonitor'
 
-        if not PimRegister.registerMonitor(monitor_ip, monitor_port, restPath):
-            print "FATAL ERROR: failed to register Monitor in LXCA."
-            log.error("FATAL ERROR: failed to register Monitor in LXCA.")
-            sys.exit(1)
+        #if not PimRegister.registerMonitor(monitor_ip, monitor_port, restPath):
+        #    print "FATAL ERROR: failed to register Monitor in LXCA."
+        #    log.error("FATAL ERROR: failed to register Monitor in LXCA.")
+        #    sys.exit(1)
 
         # initial working process pool 
         PimOps.globalDict.loadDB() 
@@ -53,6 +53,9 @@ if __name__ == '__main__':
         # Start a thread timer for CM and FM heartbead, 1 second
         t2 = threading.Thread(target=PimAgent.cmfmHeartbeat,args=(pool,1,2,))
         t2.start() 
+        # Start a thread timer for re-play failed records till NFVO feedback success,10 seconds interval
+        t3 = threading.Thread(target=PimPush.replay,args=(1,1,))
+        t3.start()
         appname = "pimnb"
         wsgi_app = loadapp(paste_path, appname) 
         # start the rest api service on 9141 port 
@@ -71,3 +74,7 @@ if __name__ == '__main__':
         t1.join()
         t2.do_run = False
         t2.join()
+        t3.do_run = False
+        t3.join()
+
+

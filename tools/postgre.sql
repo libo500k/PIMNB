@@ -14,6 +14,7 @@ lpasswd varchar(16) not null
 
 create table persistence
 (
+failtime bigint not null PRIMARY KEY,
 failip varchar(36) not null,
 failbody BYTEA,
 failmethod varchar(6) not null,

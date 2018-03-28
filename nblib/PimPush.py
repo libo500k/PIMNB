@@ -66,15 +66,17 @@ def RelayRequest(req,pimIP):
     res = Response()
     v = persistence(req.remote_addr,"<json>/hello</json>",req.method,req.path_qs)
     print v
+    getFailedRecords() 
     return res
 
 # Saved return True, else return False
 def persistence(failip, failbody, failmethod,failuri):
     print(failip,failbody,failmethod,failuri)
     saved = True
+    t = int(time.time()*100)
     body = cPickle.dumps(failbody)
-    sql = """INSERT INTO persistence (failip,failbody,failmethod,failuri) VALUES(%s,%s,%s,%s);"""
-    data = (failip,body,failmethod,failuri)
+    sql = """INSERT INTO persistence (failtime,failip,failbody,failmethod,failuri) VALUES(%s,%s,%s,%s,%s);"""
+    data = (t,failip,body,failmethod,failuri)
     try:
         db = PimOps.connectDB()
         cursor = db.cursor()
@@ -88,5 +90,40 @@ def persistence(failip, failbody, failmethod,failuri):
         db.close()
     return saved
 
-     
+def getFailedRecords():
+    sql = """SELECT * from persistence;"""  
+    try:
+        db = PimOps.connectDB()
+        cursor = db.cursor()
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+
+        for each in rows:
+            print" ==============**************++++++++++++++++^^^^^^^^^^^^^^^^^^"
+            print "time %s" %each[0]
+            print "ip %s" %each[1]
+            print "body %s" %cPickle.loads(str(each[2]))
+    except:
+        log.exception('failed to load failed records from database, check database configuraiton!')
+    finally:
+        db.close()
+
+"""
+    entry function of re-play failed records 
+"""
+def replay(interval, timeout):
+
+    t = threading.currentThread()
+
+    while getattr(t, "do_run", True):
+       
+        # get failed records from backend database
+        getFailedRecords()
+        # get current Token from global variable "rundata"
+        # if there is no "active" segment in "rundata", just ignore this line.
+        # it will be handled in next cycle
+        rundata = PimOps.globalDict.getCopy()
+        print "..."
+        
+        time.sleep(interval)
 
