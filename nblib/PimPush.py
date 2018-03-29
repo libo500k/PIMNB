@@ -70,13 +70,13 @@ def RelayRequest(req,pimIP):
     return res
 
 # Saved return True, else return False
-def persistence(failip, failbody, failmethod,failuri):
+def persistence(nfvoid ,failip, failbody, failmethod,failuri):
     print(failip,failbody,failmethod,failuri)
     saved = True
     t = int(time.time()*100)
     body = cPickle.dumps(failbody)
-    sql = """INSERT INTO persistence (failtime,failip,failbody,failmethod,failuri) VALUES(%s,%s,%s,%s,%s);"""
-    data = (t,failip,body,failmethod,failuri)
+    sql = """INSERT INTO persistence (nfvoid,failtime,failip,failbody,failmethod,failuri) VALUES(%s,%s,%s,%s,%s,%s);"""
+    data = (nfvoid,t,failip,body,failmethod,failuri)
     try:
         db = PimOps.connectDB()
         cursor = db.cursor()
