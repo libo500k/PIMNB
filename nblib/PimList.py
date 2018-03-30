@@ -367,3 +367,74 @@ def RelayListActiveAlarm(req, pimIP):
         res.body = '\n'.join(content)
 
     return res
+
+
+"""
+    ListHistoryAlarm(pimFm) class, proxy to PIM backend with process pool
+
+    PIMNB request                       https://127.0.0.1:9141/v1/pimFm/ListHisAlarms
+    redirecting to LXCA's REST API:     https://<PIM_IP>/events/??
+""" 
+class ListHistoryAlarms(object):
+    def __init__(self, a):
+        return
+
+    def __call__(self, environ, start_response):
+        req = Request(environ)
+        m = req.method
+        if m == 'GET':
+            res = doListHistoryAlarm(req)
+            return res(environ,start_response) 
+
+"""
+    doListHistoryAlarm
+"""
+def doListHistoryAlarm(req):
+    pimIP = PimAssist.Config().getValue('PIM_IP')
+    # relay ListActiveAlarm to LXCA
+    return RelayListHistoryAlarm(req, pimIP)
+
+
+"""
+    Relay ListHistoryAlarm request to LXCA
+"""
+def RelayListHistoryAlarm(req, pimIP):
+
+    # get username/passwd of LXCA from cfg.ini
+    username = PimAssist.Config().getValue('PIM_USER')
+    password = PimAssist.Config().getValue('PIM_PASS')
+    LAA_url = "/events/activeAlerts"
+    lxca_url = 'https://%s%s' % (pimIP, LAA_url)
+
+    res = Response()
+
+    try: 
+        # set CERT_NONE 
+        context = ssl._create_unverified_context()
+        conn = httplib.HTTPSConnection(pimIP, context=context)
+
+        # build authorization for LXCA
+        user_and_pass = base64.b64encode(username + ':' + password)
+        headers = {"Authorization": "Basic %s" % user_and_pass,"Content-type":"application/json", "charset":"UTF-8"}
+
+        conn.request(req.method, lxca_url, headers=headers)
+        pimres = conn.getresponse()
+
+
+        res.status = pimres.status
+        body = pimres.read()
+        # pdb.set_trace()
+        res.text = LXCA2ISP_DataMapping(body, ISPList, ISP2LXCA_DICT)
+
+        # PIM connection is OK, but API failed
+        checkPimResStatus(pimres)
+    except (httplib.HTTPException, socket.timeout, socket.gaierror, Exception), e:
+        log.error("Check network connection between PIM and PIM plugin!!!")
+        log.error('lxca_url %s is unreachable, Exception %s %s' % (lxca_url, e.__class__.__name__, e))
+        print 'lxca_url %s is unreachable, Exception %s %s' % (lxca_url.encode('utf-8'), e.__class__.__name__, e)
+        res.status = 500
+        content = []
+        content.append("Relay Request Error: failed to get response from PIM")
+        res.body = '\n'.join(content)
+
+    return res
