@@ -38,7 +38,7 @@ if __name__ == '__main__':
         # current only PushAlarm is supported
         monitor_ip = PimAssist.Config().getValue('PUSH_IP')
         monitor_port = PimAssist.Config().getValue('PUSH_PORT')
-        restPath = '/v1/pimFm/alarmMonitor'
+        restPath = '/v1/push'
 
         #if not PimRegister.registerMonitor(monitor_ip, monitor_port, restPath):
         #    print "FATAL ERROR: failed to register Monitor in LXCA."
