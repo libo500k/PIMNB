@@ -61,13 +61,21 @@ def CM(req):
 def DummyCM(global_config, **local_config):
     return CM
 
+c = PimAssist.Config()
+cert_path =  c.getValue('CERT')
+paste_path = c.getValue('PASTE')
+
+ctx = SSL.Context(SSL.SSLv23_METHOD)
+fpem =  cert_path
+ctx.use_privatekey_file (fpem)
+ctx.use_certificate_file(fpem)
 
 if __name__ == '__main__':
     paste_path = "config:/root/PIMNB/PIMNB/test/xcl.ini"
     try:
         appname = "main"
         wsgi_app = loadapp(paste_path,appname)
-        httpserver.serve(wsgi_app, host='127.0.0.1', port=2345)
+        httpserver.serve(wsgi_app, host='127.0.0.1', port=2345 ,ssl_context=ctx)
 
     except Exception, exc:
         print exc

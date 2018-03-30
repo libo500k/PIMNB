@@ -24,7 +24,9 @@ ctx.use_certificate_file(fpem)
 
 def CtrlC(signum, frame):
     print 'You choose to stop me.'
-    #t1.do_run = False
+    t1.do_run = False
+    t2.do_run = False
+    t3.do_run = False
     pool.close()
     pool.terminate()
     pool.join()
