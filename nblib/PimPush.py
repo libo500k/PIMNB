@@ -38,6 +38,18 @@ import PimPool as pool
 import PimOps
 import cPickle
 from multiprocessing import TimeoutError
+import simplejson
+
+
+"""
+    EventID list for Resoure Change
+"""
+RES_CHG_EVENTID=[
+'FQXHMDI0101I',     # DelRes
+'FQXHMDI0102I',     # AddRes
+'FQXSPEM4017I'      # UpdateRes
+]
+
 
 class ListTest(object):
     '''
@@ -129,32 +141,64 @@ def replay(interval, timeout):
 
 
 """
-    Processing push from lxca, e.g. PushAlarm, PushResChg
+    Processing push from lxca, current support PushAlarm & PushResChg
 """
 def doRelayPush(req):
 
+    # prepare for relay event
     body  = req.body
     method = req.method # POST only now, maybe should support PUSH later
     nfvoIp = ''
     uri = ''
 
+    # set default value
     res = Response()
     res.status = 200
     bERROR = True
+    bAlarm = True
+
+    # current only support Alarm_Event and ResChg_Event
+    eventDict = simplejson.loads(body)
+    if eventDict['eventID'] in RES_CHG_EVENTID:
+        bAlarm = False
+
 
     # get a local copy of rundata
     rundata = PimOps.globalDict.getCopy() 
+
     # relay to nfvo, maybe multiple nfvo, identified by nfvoId
     for nfvoId in rundata:
 
+        # for a specific nfvo
+        node = rundata[nfvoId]
         if rundata[nfvoId].has_key('advance'):
 
-            # get NFVOIP and uri
-            nfvoIp = rundata[nfvoId]['advance']['nfvoip']
-            uri = rundata[nfvoId]['advance']['uri']
+            for i in node['advance']['CallBackUris']:
+                # alarm event
+                if bAlarm:
+                    if i['UriType'].upper() == "PIMFM":
+                        regex = ".+//(.+)/(.+)$"
+                        if re.search(regex, i['CallBackUri']):
+                            match = re.search(regex,i['CallBackUri'])
+                            nfvoIp = match.group(1)
+                            uri = '/'+match.group(2)
+                            break
+                        else:
+                            log.error("Error Occured with wrong URI format %s" % i['CallBackUri'])
+                # resouce chg event
+                else:
+                    if i['UriType'].upper() == "PIMCM":
+                        regex = ".+//(.+)/(.+)$"
+                        if re.search(regex, i['CallBackUri']):
+                            match = re.search(regex,i['CallBackUri'])
+                            nfvoIp = match.group(1)
+                            uri = '/'+match.group(2)
+                            break
+                        else:
+                            log.error("Error Occured with wrong URI format %s" % i['CallBackUri'])
 
             # get token before push
-            token = rundata[nfvoId]['advance']['token']
+            token = node['advance']['token']
 
             # build auth header 
             headers = { "X-Auth-Token" : token }
