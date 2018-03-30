@@ -156,7 +156,7 @@ class PimJobs(object):
         # send success response
         res.status = 201
         res.headerlist = [('Content-type', 'application/json'),('Charset', 'UTF-8')]
-        res.body = json.dumps({"VimId":getVimid()})
+        res.body = json.dumps({"PimId":getVimid()})
         print ( "=====> Subscription from %s ,handled =======" % req.remote_addr)
         return res
 
