@@ -106,7 +106,7 @@ def sendHeartBeat(node, timeout, hb_type):
     # print(node)
 
     if hb_type in HB_Dict:
-        body = '{"Version":"1.0", "VimId":"%s", "SrcType":"vpim", "MsgType":"%s",}' % (vimid, HB_Dict[hb_type])
+        body = '{"Version":"1.0", "VimId":"%s", "SrcType":"vpim", "MsgType":"%s" }' % (vimid, HB_Dict[hb_type])
     else:
         print("Wrong heartbeat type")
         log.error("Wrong heartbeat type")
