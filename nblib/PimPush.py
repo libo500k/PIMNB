@@ -175,7 +175,7 @@ def replay(interval, timeout):
         # sleep 
         # time.sleep(interval)
         time.sleep(5)
-    print "*********************************fuck fuck***********************************************"
+    print "*********************************end of t3 thread***********************************************"
 
 def sendFailedRequest(t,fip,fbody,fmethod,furi):
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
