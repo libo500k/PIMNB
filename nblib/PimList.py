@@ -180,7 +180,10 @@ class ListSystemList(object):
             # Response will be handled in process pool, 
             # no need to check return value 
             res = ListRes(req)
-            return res(environ,start_response)
+        else:
+            res = Response()
+            self._setErrorResponse(res,400,"INVALID REQUEST")
+        return res(environ,start_response) 
 
 def ListRes(req):
     pimIP = PimAssist.Config().getValue('PIM_IP')
