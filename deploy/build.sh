@@ -10,6 +10,7 @@ pip install PasteDeploy
 pip install mysql-python
 pip install python-dateutil
 pip install psycopg2-binary
+pip install simplejson
 deactivate
 virtualenv --relocatable ./pimnb
 cp -r ../cfg/ ../nblib/ ../run.py ../tools/ ./pimnb/
