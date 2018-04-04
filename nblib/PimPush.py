@@ -255,7 +255,7 @@ def doRelayPush(req):
                             log.error("Error Occured with wrong URI format %s" % i['CallBackUri'])
 
             # get token before push
-            token = node['advance']['token']
+            token = node['advance']['Token']
 
             # build auth header 
             headers = { "X-Auth-Token" : token }
