@@ -182,7 +182,10 @@ class ListSystemList(object):
             res = ListRes(req)
         else:
             res = Response()
-            self._setErrorResponse(res,400,"INVALID REQUEST")
+            res.status = 400
+            content = []
+            content.append("INVALID REQUEST ")
+            res.body = '\n'.join(content)
         return res(environ,start_response) 
 
 def ListRes(req):
