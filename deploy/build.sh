@@ -3,14 +3,14 @@
 #pip install virtualenv
 virtualenv --no-site-packages pimnb
 source pimnb/bin/activate
-pip install pyopenssl
-pip install paste
-pip install webob
-pip install PasteDeploy
-pip install mysql-python
-pip install python-dateutil
-pip install psycopg2-binary
-pip install simplejson
+pip install pyopenssl  --no-cache-dir
+pip install paste  --no-cache-dir
+pip install webob  --no-cache-dir
+pip install PasteDeploy  --no-cache-dir
+pip install mysql-python  --no-cache-dir
+pip install python-dateutil  --no-cache-dir
+pip install psycopg2-binary  --no-cache-dir
+pip install simplejson  --no-cache-dir
 deactivate
 virtualenv --relocatable ./pimnb
 cp -r ../cfg/ ../nblib/ ../run.py ../tools/ ./pimnb/
