@@ -54,13 +54,12 @@ class globalDict(object):
             for row in results:
                d = {}
                d['NfvoId'] = row[0]
-               d['Heartbeat'] = row[1]
-               d['Period'] = row[2]
-               d['HeartbeatCm'] = row[3]
-               d['HeartbeatFm'] = row[4]
-               d['IdentityUri'] = row[5]
-               d['Username'] = row[6]
-               d['Password'] = row[7]
+               d['Period'] = row[1]
+               d['HeartbeatCm'] = row[2]
+               d['HeartbeatFm'] = row[3]
+               d['IdentityUri'] = row[4]
+               d['Username'] = row[5]
+               d['Password'] = row[6]
                d['qType'] = "pim" 
                cls._auth[row[0]]={}
                cls._auth[row[0]]["basic"] = d
@@ -245,8 +244,6 @@ class PimJobs(object):
             return False
         if not self.body.has_key('Period'):
             return False
-        if not self.body.has_key('Heartbeat'):
-            return False
         if not self.body.has_key('HeartbeatCm'):
             return False
         if not self.body.has_key('HeartbeatFm'):
@@ -274,7 +271,6 @@ class PimJobs(object):
         saved = True
         db = connectDB() 
         nfvoid = self.body.get('NfvoId')
-        hb = self.body.get('Heartbeat')
         pe = self.body.get('Period')
         url = self.body.get('IdentityUri')
         user = self.body.get('Username')
@@ -282,8 +278,8 @@ class PimJobs(object):
         hbcm = self.body.get('HeartbeatCm')
         hbfm = self.body.get('HeartbeatFm')
         delsql = "delete from regmano where nfvoid= '%s';" %(nfvoid)
-        sql = "INSERT INTO regmano(nfvoid,heartbeat,period,hbcm,hbfm,identityuri,luser,lpasswd)\
-               VALUES ('%s',%s,%s,%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,hbcm,hbfm,url,user,passwd) 
+        sql = "INSERT INTO regmano(nfvoid,period,hbcm,hbfm,identityuri,luser,lpasswd)\
+               VALUES ('%s',%s,%s,%s,'%s','%s','%s')" % (nfvoid,pe,hbcm,hbfm,url,user,passwd) 
 	try:
             cursor = db.cursor()
             cursor.execute(delsql)

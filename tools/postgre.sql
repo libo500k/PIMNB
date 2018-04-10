@@ -5,7 +5,6 @@ create database pimnb;
 create table regmano
 (
 nfvoid varchar(36) not null PRIMARY KEY,
-heartbeat int,
 period int,
 hbcm int,
 hbfm int,

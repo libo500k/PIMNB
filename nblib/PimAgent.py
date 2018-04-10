@@ -55,7 +55,7 @@ def cmfmHeartbeat(pool, interval, timeout):
                 changed = True
             else:
                 stamp = PimOps.getDateTimeFromISO8601String(rundata[key]['cmstamp']).replace(tzinfo=None)
-                delta = datetime.timedelta(seconds = rundata[key]['basic']['Heartbeat'])
+                delta = datetime.timedelta(seconds = rundata[key]['basic']['HeartbeatCm'])
                 #LoadDB and NFVO down will cause there is no "advance" key
                 if (c >= stamp+delta) and ('advance' in rundata[key]) :
                     rundata[key]['cmstamp'] = str(c)
