@@ -325,7 +325,7 @@ def LXCA2ISP_DataMapping(LXCA_resp, targetList, mapDict):
         alarmList.append( "}")
 
     alarmBody = "".join(alarmList)
-    body = '{"Version":"1.0", "VimId":"%s", "SrcType":"pim", "MsgType":"pimFmAlarm", "AlarmList":"[%s]", "CurrentBatch": 1, "TotalBatches": 1}' % (vimid, alarmBody)
+    body = '{"Version":"1.0", "PimId":"%s", "SrcType":"pim", "MsgType":"pimFmAlarm", "AlarmList":"[%s]", "CurrentBatch": 1, "TotalBatches": 1}' % (vimid, alarmBody)
 
     return body
 

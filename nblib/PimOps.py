@@ -314,10 +314,11 @@ def connectDB():
 
 def getVimid():
     # Not sure where to get the VIMID based on the SPEC
-    # As a workaround, use the keystone's IP UUID5 temporarily
-    c = PimAssist.Config()
-    ip = c.getValue('KS_AUTH_IP') 
-    vimid = uuid.uuid5(uuid.NAMESPACE_URL,ip)
+    # Per Michael and Li Gong's suggestion, use hardcoding as workaround.
+    #c = PimAssist.Config()
+    #ip = c.getValue('KS_AUTH_IP') 
+    #vimid = uuid.uuid5(uuid.NAMESPACE_URL,ip)
+    vimid = "81f1d9d0-ca13-4eea-a4ce-9bd89a50c9d1"
     return str(vimid)
 
 
@@ -354,7 +355,7 @@ def sendRequestPD(info,to):
     #prepare header and body
     headers = {"Content-type":"application/json", "charset":"UTF-8",\
                "X-Auth-Username":info['Username'],"X-Auth-Password":info['Password']}
-    body = '{"VimId": "%s"}' % getVimid()
+    body = '{"PimId": "%s"}' % getVimid()
     #prepare hosturl
     uri = info['IdentityUri']
     regex = ".+//(.+)/(.+)$"
