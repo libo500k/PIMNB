@@ -30,6 +30,10 @@ HB_Dict = {
     "FMHB":"pimFmHeartbeat"
 }
 
+RESTPATH_HB_Dict = {
+    "CMHB":"pimCm",
+    "FMHB":"pimFm"
+}
 
 """
     entry function of config management heartbeat (CMHB) and fault management heartbeat (FMHB) thread
@@ -118,7 +122,7 @@ def sendHeartBeat(node, timeout, hb_type):
     # fetch the heartbeat ip:port or ip only.
     for i in node['advance']['CallBackUris']:
         # !!! Pressed for time, hard-coding PIMCM,re-struct later
-        if i['UriType'].upper() == "PIMCM":
+        if i['UriType'].upper() == RESTPATH_HB_Dict[hb_type]:
             regex = ".+//(.+)/(.+)$"
             if re.search(regex, i['CallBackUri']):
                 match = re.search(regex,i['CallBackUri'])
