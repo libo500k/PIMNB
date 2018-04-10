@@ -56,9 +56,11 @@ class globalDict(object):
                d['NfvoId'] = row[0]
                d['Heartbeat'] = row[1]
                d['Period'] = row[2]
-               d['IdentityUri'] = row[3]
-               d['Username'] = row[4]
-               d['Password'] = row[5]
+               d['HeartbeatCm'] = row[3]
+               d['HeartbeatFm'] = row[4]
+               d['IdentityUri'] = row[5]
+               d['Username'] = row[6]
+               d['Password'] = row[7]
                d['qType'] = "pim" 
                cls._auth[row[0]]={}
                cls._auth[row[0]]["basic"] = d
