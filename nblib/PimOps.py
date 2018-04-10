@@ -279,10 +279,12 @@ class PimJobs(object):
         passwd = self.body.get('Password')   
         hbcm = self.body.get('HeartbeatCm')
         hbfm = self.body.get('HeartbeatFm')
+        delsql = "delete from regmano where nfvoid= '%s';" %(nfvoid)
         sql = "INSERT INTO regmano(nfvoid,heartbeat,period,hbcm,hbfm,identityuri,luser,lpasswd)\
                VALUES ('%s',%s,%s,%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,hbcm,hbfm,url,user,passwd) 
 	try:
             cursor = db.cursor()
+            cursor.execute(delsql)
             cursor.execute(sql)
             db.commit()
         except:
