@@ -245,6 +245,10 @@ class PimJobs(object):
             return False
         if not self.body.has_key('Heartbeat'):
             return False
+        if not self.body.has_key('HeartbeatCm'):
+            return False
+        if not self.body.has_key('HeartbeatFm'):
+            return False
         return True
 
     def _deleteFromDB(self,nfvoid):
@@ -273,8 +277,10 @@ class PimJobs(object):
         url = self.body.get('IdentityUri')
         user = self.body.get('Username')
         passwd = self.body.get('Password')   
-        sql = "INSERT INTO regmano(nfvoid,heartbeat,period,identityuri,luser,lpasswd)\
-               VALUES ('%s',%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,url,user,passwd) 
+        hbcm = self.body.get('HeartbeatCm')
+        hbfm = self.body.get('HeartbeatFm')
+        sql = "INSERT INTO regmano(nfvoid,heartbeat,period,hbcm,hbfm,identityuri,luser,lpasswd)\
+               VALUES ('%s',%s,%s,%s,%s,'%s','%s','%s')" % (nfvoid,hb,pe,hbcm,hbfm,url,user,passwd) 
 	try:
             cursor = db.cursor()
             cursor.execute(sql)
