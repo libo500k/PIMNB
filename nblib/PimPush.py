@@ -266,7 +266,7 @@ def doRelayPush(req):
 
             try:
                 conn.request(method, nfvoIp + uri, body=body, headers=headers)
-                nfvo_res = c.getresponse()
+                nfvo_res = conn.getresponse()
                 res.status = nfvo_res.status
             except Exception, exc:
                 # fail to relay to nfvo
