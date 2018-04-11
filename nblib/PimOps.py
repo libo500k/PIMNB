@@ -163,7 +163,12 @@ class PimJobs(object):
 
     def _deleteSubs(self,req):
         res = Response()
-        # check token
+        # get the token from request header 
+        self.token = None
+        for i in req.headers.items():
+            if i[0] == "X-Auth-Token":
+                self.token = i[1]
+                break
         v = checkToken(self.token)
         if not v:
             #fail to check token
@@ -171,11 +176,11 @@ class PimJobs(object):
             return res
         # fetch nfvoid
         str1 = req.path_qs
-        regex = ".+pimJobs/(.+)\?qType=(.+)"
+        regex = ".+pimJobs/(.+)\?(.+)"
         if re.search(regex, str1):
             match = re.search(regex, str1)
             nfvoid = match.group(1)
-	    qtype = match.group(2)
+	    #qtype = match.group(2)
             #remove from database
             v = self._deleteFromDB(nfvoid) 
             if not v:
