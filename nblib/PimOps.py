@@ -212,27 +212,22 @@ class PimJobs(object):
             #fail to check token
             self._setErrorResponse(res,401,"UNAUTHORIZED")
             return res
- 
-        str1 = req.path_qs
-        regex = ".+\?NfvoId=(.+)\&.+"
-        if re.search(regex, str1):
-            match = re.search(regex, str1)
-            nfvoid = match.group(1) 
-            # get data from runtime data
-            rundata = globalDict.getCopy() 
-            if nfvoid in rundata:
-                # get data for response
+        nfvoid = getQueryString( req.query_string,"NfvoId")
+        if not nfvoid:
+            self._setErrorResponse(res,400,"INVALID REQUEST")
+            log.error("incorrect query , no NfvoId value")
+        else:
+            rundata = globalDict.getCopy()
+            if nfvoid in rundata: 
+                # get data for response 
                 res.status = 200
                 res.headerlist = [('Content-type', 'application/json'),('Charset', 'UTF-8')]
+                del rundata[nfvoid]['basic']['Username']
+                del rundata[nfvoid]['basic']['Password']
                 res.body = json.dumps(rundata[nfvoid]['basic'])
             else:
                 self._setErrorResponse(res,400,"INVALID REQUEST")
                 log.error("incorrect query , no runtime data!")  
-        else:
-            # wrong query string
-            self._setErrorResponse(res,400,"INVALID REQUEST")
-            log.error("incorrect query  subscription in header")
-            return res
         print ( "=====> List Subscription from %s ,handled =======" % req.remote_addr) 
         return res
 
@@ -422,3 +417,25 @@ def checkToken(token):
             else:
                 log.error("Keystone Error Response status: %s" %res.status)
                 return False 
+
+def getQueryString(str,key):
+    list1 = str.split('&')
+    d = {}
+    # convert the query sting to dict
+    for i in list1:
+        list2 = i.split('=')
+        if len(list2) == 2:
+            d[list2[0]] = list2[1]
+    if key in d:
+        return d[key]
+    else:
+        return None
+
+
+
+
+
+
+
+
+
