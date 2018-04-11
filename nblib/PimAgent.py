@@ -48,6 +48,8 @@ def cmfmHeartbeat(pool, interval, timeout):
         # get current time
         c = datetime.datetime.now().replace(tzinfo=None)
         for key in rundata:
+            if rundata[key]['basic']['HeartbeatCm'] == 0:
+                continue
             if not rundata[key].has_key('cmstamp'):
                 # this case will happen on load db or new register
                 # there is no token in rundata, so just set the stamptime 
@@ -61,6 +63,22 @@ def cmfmHeartbeat(pool, interval, timeout):
                     rundata[key]['cmstamp'] = str(c)
                     # do config management heartbeat
                     doHB(pool, rundata[key], timeout, "CMHB")
+                    changed = True
+
+        for key in rundata:
+            if rundata[key]['basic']['HeartbeatFm'] == 0:
+                continue
+            if not rundata[key].has_key('fmstamp'):
+                # this case will happen on load db or new register
+                # there is no token in rundata, so just set the stamptime 
+                rundata[key]['fmstamp'] = str(c)
+                changed = True
+            else:
+                stamp = PimOps.getDateTimeFromISO8601String(rundata[key]['fmstamp']).replace(tzinfo=None)
+                delta = datetime.timedelta(seconds = rundata[key]['basic']['HeartbeatFm'])
+                #LoadDB and NFVO down will cause there is no "advance" key
+                if (c >= stamp+delta) and ('advance' in rundata[key]) :
+                    rundata[key]['fmstamp'] = str(c)
                     # do fault management heartbeat
                     doHB(pool, rundata[key], timeout, "FMHB")
                     changed = True

@@ -171,7 +171,7 @@ class PimJobs(object):
             return res
         # fetch nfvoid
         str1 = req.path_qs
-        regex = ".+pimJobs/(.+)\?subType=(.+)"
+        regex = ".+pimJobs/(.+)\?qType=(.+)"
         if re.search(regex, str1):
             match = re.search(regex, str1)
             nfvoid = match.group(1)
@@ -240,7 +240,7 @@ class PimJobs(object):
             return False
         if not self.body.has_key('IdentityUri'):
             return False
-        if not self.body.has_key('subType'):
+        if not self.body.has_key('qType'):
             return False
         if not self.body.has_key('Period'):
             return False
