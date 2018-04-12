@@ -138,9 +138,11 @@ def sendHeartBeat(node, timeout, hb_type):
                "X-Auth-Token": node['advance']['Token']}
     sslctx = ssl._create_unverified_context()
     # fetch the heartbeat ip:port or ip only.
+ 
     for i in node['advance']['CallBackUris']:
         # !!! Pressed for time, hard-coding PIMCM,re-struct later
-        if i['UriType'].upper() == RESTPATH_HB_Dict[hb_type]:
+        # case sensitive, be careful
+        if i['UriType'] == RESTPATH_HB_Dict[hb_type]:
             regex = ".+//(.+)/(.+)$"
             if re.search(regex, i['CallBackUri']):
                 match = re.search(regex,i['CallBackUri'])
@@ -151,7 +153,6 @@ def sendHeartBeat(node, timeout, hb_type):
                 print("%s Error Occured with wrong URI format %s" % (HB_Dict[hb_type],  i['CallBackUri']))
                 log.error("%s Error Occured with wrong URI format %s" %(HB_Dict[hb_type], i['CallBackUri'])) 
                 return None
-
     c = httplib.HTTPSConnection(host=hosturl,timeout=timeout,context=sslctx) 
     try:
         c.request("PUT", restapi, body, headers)
